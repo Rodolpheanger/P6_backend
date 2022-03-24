@@ -1,90 +1,113 @@
 const fs = require("fs");
 const Sauce = require("../models/Sauce");
 
+const findSauce = (sauceId) => {
+  return Sauce.findOne({ _id: sauceId });
+};
+
+const getSauceId = (req) => {
+  return req.params.id;
+};
+
 // Renvoi toutes les sauces
-exports.getAllSauces = (req, res, next) => {
-  Sauce.find()
-    .then((sauces) => res.status(200).json(sauces))
-    .catch((error) => res.status(400).json({ error }));
+exports.getAllSauces = async (req, res, next) => {
+  try {
+    const sauces = await Sauce.find();
+    const sortSauces = (a, b) => {
+      return a.manufacturer.localeCompare(b.manufacturer);
+    };
+    res.status(200).json(sauces.sort(sortSauces));
+  } catch (err) {
+    res.status(400).json({ error });
+  }
 };
 
 // Renvoi une sauce
-exports.getOneSauce = (req, res, next) => {
-  Sauce.findOne({ _id: req.params.id })
-    .then((sauce) => res.status(200).json(sauce))
-    .catch((error) => res.status(404).json({ error }));
+exports.getOneSauce = async (req, res, next) => {
+  const sauceId = getSauceId(req);
+  try {
+    const sauce = await findSauce(sauceId);
+    res.status(200).json(sauce);
+  } catch (err) {
+    res.status(404).json({ err });
+  }
 };
 
 // Création sauce
-exports.createSauce = (req, res, next) => {
-  const sauceObject = JSON.parse(req.body.sauce);
-  const sauce = new Sauce({
-    ...sauceObject,
-    imageUrl: `${req.protocol}://${req.get("host")}/images/${
-      req.file.filename
-    }`,
-  });
-  sauce
-    .save()
-    .then(() => res.status(201).json({ message: "Sauce créée avec succès!" }))
-    .catch((error) => res.status(400).json({ error }));
+exports.createSauce = async (req, res, next) => {
+  try {
+    const sauceObject = JSON.parse(req.body.sauce);
+    const sauce = new Sauce({
+      ...sauceObject,
+      imageUrl: `${req.protocol}://${req.get("host")}/images/${
+        req.file.filename
+      }`,
+    });
+    await sauce.save();
+    res.status(201).json({ message: "Sauce créée avec succès!" });
+  } catch (err) {
+    res.status(400).json({ err });
+  }
 };
 
 // Modification sauce
-exports.modifySauce = (req, res, next) => {
+const modifySuccessResponse = (res) => {
+  res.status(200).json({ message: "Sauce modifiée avec succès !" });
+};
+
+exports.modifySauce = async (req, res, next) => {
+  const sauceId = getSauceId(req);
+  const modifySuccess = modifySuccessResponse(res);
   if (req.file) {
-    Sauce.findOne({ _id: req.params.id })
-      .then((sauce) => {
-        const filename = sauce.imageUrl.split("/images/")[1];
-        fs.unlink(`images/${filename}`, () => {
-          Sauce.updateOne(
-            { _id: req.params.id },
-            {
-              ...JSON.parse(req.body.sauce),
-              imageUrl: `${req.protocol}://${req.get("host")}/images/${
-                req.file.filename
-              }`,
-            }
-          )
-            .then(() =>
-              res.status(200).json({ message: "Sauce modifiée avec succès !" })
-            )
-            .catch((error) => res.status(400).json({ error }));
-        });
-      })
-      .catch((error) => res.status(404).json({ error }));
+    try {
+      const sauce = await findSauce(sauceId);
+      const filename = sauce.imageUrl.split("/images/")[1];
+      fs.unlinkSync(`images/${filename}`);
+      await Sauce.updateOne(
+        { _id: sauceId },
+        {
+          ...JSON.parse(req.body.sauce),
+          imageUrl: `${req.protocol}://${req.get("host")}/images/${
+            req.file.filename
+          }`,
+        }
+      );
+      modifySuccess;
+    } catch (err) {
+      res.status(404).json({ err });
+    }
   } else {
-    Sauce.updateOne({ _id: req.params.id }, { ...req.body })
-      .then(() =>
-        res.status(200).json({ message: "Sauce modifiée avec succès !" })
-      )
-      .catch((error) => res.status(400).json({ error }));
+    try {
+      await Sauce.updateOne({ _id: sauceId }, { ...req.body });
+      modifySuccess;
+    } catch (err) {
+      res.status(400).json({ err });
+    }
   }
 };
 
 // Suppression sauce
-exports.deleteSauce = (req, res, next) => {
-  Sauce.findOne({ _id: req.params.id })
-    .then((sauce) => {
-      const filename = sauce.imageUrl.split("/images/")[1];
-      fs.unlink(`images/${filename}`, () => {
-        Sauce.deleteOne({ _id: req.params.id })
-          .then(() =>
-            res.status(200).json({ message: "Sauce supprimée avec succès !" })
-          )
-          .catch((error) => res.status(400).json({ error }));
-      });
-    })
-    .catch((error) => res.status(404).json({ error }));
+exports.deleteSauce = async (req, res, next) => {
+  const sauceId = getSauceId(req);
+  try {
+    const sauce = await findSauce(sauceId);
+    const filename = sauce.imageUrl.split("/images/")[1];
+    fs.unlinkSync(`images/${filename}`);
+    await Sauce.deleteOne({ _id: sauceId });
+    res.status(200).json({ message: "Sauce supprimée avec succès !" });
+  } catch (err) {
+    res.status(400).json({ err });
+  }
 };
 
 // Like sauce
 exports.likeSauce = (req, res, next) => {
-  Sauce.findOne({ _id: req.params.id })
+  const sauceId = getSauceId(req);
+  findSauce(sauceId)
     .then((sauce) => {
       if (!sauce.usersLiked.includes(req.body.userId) && req.body.like === 1) {
         Sauce.updateOne(
-          { _id: req.params.id },
+          { _id: sauceId },
           { $inc: { likes: 1 }, $push: { usersLiked: req.body.userId } }
         )
           .then(() =>
@@ -96,7 +119,7 @@ exports.likeSauce = (req, res, next) => {
         req.body.like === -1
       ) {
         Sauce.updateOne(
-          { _id: req.params.id },
+          { _id: sauceId },
           { $inc: { dislikes: 1 }, $push: { usersDisliked: req.body.userId } }
         )
           .then(() =>
@@ -108,7 +131,7 @@ exports.likeSauce = (req, res, next) => {
         req.body.like === 0
       ) {
         Sauce.updateOne(
-          { _id: req.params.id },
+          { _id: sauceId },
           { $inc: { likes: -1 }, $pull: { usersLiked: req.body.userId } }
         )
           .then(() =>
@@ -120,7 +143,7 @@ exports.likeSauce = (req, res, next) => {
         req.body.like === 0
       ) {
         Sauce.updateOne(
-          { _id: req.params.id },
+          { _id: sauceId },
           { $inc: { dislikes: -1 }, $pull: { usersDisliked: req.body.userId } }
         )
           .then(() =>
