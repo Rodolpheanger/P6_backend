@@ -14,13 +14,29 @@ const badRequestError = (res, err) => {
 };
 
 // Renvoi toutes les sauces
+const sortByManufacturerAndHeat = (sauces) => {
+  const sortSauces = (a, b) => {
+    aLow = a.manufacturer.toLowerCase();
+    bLow = b.manufacturer.toLowerCase();
+    if (aLow < bLow) {
+      return -1;
+    }
+    if (aLow > bLow) {
+      return 1;
+    }
+    if (aLow === bLow) {
+      return a.heat - b.heat;
+    }
+  };
+  const sortedSauces = sauces.sort(sortSauces);
+  return sortedSauces;
+};
+
 exports.getAllSauces = async (req, res, next) => {
   try {
     const sauces = await Sauce.find();
-    const sortSauces = (a, b) => {
-      return a.manufacturer.localeCompare(b.manufacturer);
-    };
-    res.status(200).json(sauces.sort(sortSauces));
+    const sortedSauces = sortByManufacturerAndHeat(sauces);
+    res.status(200).json(sortedSauces);
   } catch (err) {
     badRequestError(res, err);
   }
