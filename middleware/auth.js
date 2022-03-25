@@ -5,12 +5,13 @@ module.exports = (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1];
     const decodedToken = jwt.verify(token, `${process.env.TOKEN_SECRETKEY}`);
     const userId = decodedToken.userId;
+    req.auth = { userId };
     if (req.body.userId && req.body.userId !== userId) {
-      throw res.status(403).json({ message: "unauthorized request" });
+      throw "Requête non autorisée !";
     } else {
       next();
     }
-  } catch (error) {
-    res.status(401).json({ error });
+  } catch (err) {
+    res.status(401).json({ err: err });
   }
 };

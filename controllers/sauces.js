@@ -1,12 +1,14 @@
 const fs = require("fs");
 const Sauce = require("../models/Sauce");
 
+const getSauceId = (req) => {
+  return req.params.id;
+};
 const findSauce = (sauceId) => {
   return Sauce.findOne({ _id: sauceId });
 };
-
-const getSauceId = (req) => {
-  return req.params.id;
+const getAuthUserId = (req) => {
+  return req.auth.userId;
 };
 
 const badRequestError = (res, err) => {
@@ -106,8 +108,17 @@ exports.modifySauce = async (req, res, next) => {
 // Suppression sauce
 exports.deleteSauce = async (req, res, next) => {
   const sauceId = getSauceId(req);
+  const userId = getAuthUserId(req);
   try {
     const sauce = await findSauce(sauceId);
+    if (!sauce) {
+      return res.status(404).json({ error: new Error("Sauce non trouvée !") });
+    }
+    if (userId !== sauce.userId) {
+      return res
+        .status(401)
+        .json({ error: new Error("Requête non autorisée !") });
+    }
     const filename = sauce.imageUrl.split("/images/")[1];
     fs.unlinkSync(`images/${filename}`);
     await Sauce.deleteOne({ _id: sauceId });
