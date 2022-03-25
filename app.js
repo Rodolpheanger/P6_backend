@@ -1,5 +1,6 @@
 require("dotenv").config({ path: "./config/.env" });
 const express = require("express");
+const helmet = require("helmet");
 const app = express();
 require("./config/database");
 const cors = require("cors");
@@ -17,6 +18,7 @@ app.use(
   })
 );
 
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use("/images", express.static(path.join(__dirname, "images")));
 app.use("/api/auth", userRoutes);
 app.use("/api/sauces", saucesRoutes);
