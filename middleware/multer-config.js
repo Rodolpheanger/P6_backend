@@ -6,6 +6,24 @@ const MIME_TYPES = {
   "image/png": "png",
 };
 
+const fileFilter = (req, file, cb) => {
+  console.log(file.mimetype);
+  if (
+    file.mimetype === "image/jpeg" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/png"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+    return cb(
+      new Error(
+        "Le type de fichier est invalide (fichiers jpg, jpeg ou png uniquement)"
+      )
+    );
+  }
+};
+
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
     callback(null, "images");
@@ -17,4 +35,4 @@ const storage = multer.diskStorage({
   },
 });
 
-module.exports = multer({ storage }).single("image");
+module.exports = multer({ fileFilter, storage }).single("image");
