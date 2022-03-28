@@ -4,7 +4,7 @@ const requestDataChecker = require("../middleware/data-checker");
 
 const userCtrl = require("../controllers/user");
 
-router.post("/signup", requestDataChecker.validUserData, userCtrl.signup);
-router.post("/login", requestDataChecker.validUserData, userCtrl.login);
+router.post("/signup", requestDataChecker.checkUserData, userCtrl.signup);
+router.post("/login", requestDataChecker.checkUserData, userCtrl.login);
 
 module.exports = router;

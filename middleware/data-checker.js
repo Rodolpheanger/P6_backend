@@ -8,7 +8,7 @@ const userJoiSchema = Joi.object({
   password: Joi.string().required(),
 });
 
-exports.validUserData = (req, res, next) => {
+exports.checkUserData = (req, res, next) => {
   const checkedData = userJoiSchema.validate(req.body);
   if (checkedData.error) {
     errorMessage(res);
@@ -32,9 +32,8 @@ const sauceJoiSchema = Joi.object({
 // const imageSauce = Joi.binary().required();
 
 exports.checkSauceData = (req, res, next) => {
-  console.log(req.body);
   console.log(req.file);
-  const checkedData = sauceJoiSchema.validate(req.body);
+  const checkedData = sauceJoiSchema.validate(req.body.sauce);
   // const checkedImage = imageSauce.validate(req.file);
   if (checkedData.error /*|| checkedImage.error*/) {
     console.log(checkedData.error);
@@ -44,4 +43,16 @@ exports.checkSauceData = (req, res, next) => {
   }
 };
 
-// const likeJoiSchema = Joi.object({});
+const likeJoiSchema = Joi.object({
+  like: Joi.number().min(-1).max(1).integer().required(),
+  userId: Joi.string().required().alphanum(),
+});
+
+exports.checkLikeData = (req, res, next) => {
+  const checkedData = likeJoiSchema.validate(req.body);
+  if (checkedData.error) {
+    errorMessage(res);
+  } else {
+    next();
+  }
+};
