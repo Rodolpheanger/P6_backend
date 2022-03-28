@@ -84,13 +84,17 @@ exports.modifySauce = async (req, res, next) => {
       const sauce = await findSauce(sauceId);
       const filename = sauce.imageUrl.split("/images/")[1];
       fs.unlinkSync(`images/${filename}`);
-      await Sauce.updateOne({
-        _id: sauceId,
-        ...JSON.parse(req.body.sauce),
-        imageUrl: `${req.protocol}://${req.get("host")}/images/${
-          req.file.filename
-        }`,
-      });
+      await Sauce.updateOne(
+        {
+          _id: sauceId,
+        },
+        {
+          ...JSON.parse(req.body.sauce),
+          imageUrl: `${req.protocol}://${req.get("host")}/images/${
+            req.file.filename
+          }`,
+        }
+      );
       modifySuccessResponse(res);
     } catch (err) {
       res.status(404).json({ err });
