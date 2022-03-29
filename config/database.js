@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+// Configuration pour connexion à la BDD MongoDB
 (async () => {
   try {
     await mongoose.connect(
@@ -9,8 +10,8 @@ const mongoose = require("mongoose");
         useUnifiedTopology: true,
       }
     );
-    console.log("Connexion à MongoDb réussie !");
+    console.log("Connexion MongoDb OK !");
   } catch {
-    console.log("Connexion à MongoDB échouée !");
+    console.log("Connexion MongoDB KO !");
   }
 })();

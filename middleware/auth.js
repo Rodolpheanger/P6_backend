@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 
+// Vérifie si l'utilisateur possède un token valide et si l'id contenu dans la partie charge utile (payload) correspond bien à l'id de l'utilisateur propriétaire de la sauce ciblée par la requête
 module.exports = (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];

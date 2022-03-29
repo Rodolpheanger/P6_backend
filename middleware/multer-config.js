@@ -1,13 +1,14 @@
 const multer = require("multer");
 
+// Définie les types mimes possibles des images dans la requête pour générer l'extension du fichier
 const MIME_TYPES = {
   "image/jpg": "jpg",
   "image/jpeg": "jpg",
   "image/png": "png",
 };
 
+// Filtre des types de fichiers accéptés (jpg, jpeg, png)
 const fileFilter = (req, file, cb) => {
-  console.log(file.mimetype);
   if (
     file.mimetype === "image/jpeg" ||
     file.mimetype === "image/jpg" ||
@@ -24,6 +25,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// Configuration de multer avec définition du dossier de stockage ("images") et du nom de l'image contenu dans la requête (nom d'origine avec remplacement des éventuels espaces par des underscores + timestamp de la création + extension selon le type mime)
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
     callback(null, "images");
@@ -31,7 +33,7 @@ const storage = multer.diskStorage({
   filename: (req, file, callback) => {
     const name = file.originalname.split(" ").join("_");
     const extension = MIME_TYPES[file.mimetype];
-    callback(null, name + Date.now() + "." + extension);
+    callback(null, `${name}${Date.now()}.${extension}`);
   },
 });
 

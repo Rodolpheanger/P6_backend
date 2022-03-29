@@ -1,21 +1,28 @@
 const fs = require("fs");
 const Sauce = require("../models/Sauce");
 
+// Retourne l'ID d'une sauce par le paramètre id de l'URL
 const getSauceId = (req) => {
   return req.params.id;
 };
+
+// Retourne les données d'une sauce sous forme d'objet selon son id dans la BDD
 const findSauce = (sauceId) => {
   return Sauce.findOne({ _id: sauceId });
 };
+
+// Retourne l'id de l'utilisateur contenu dans la partie charge utile (payload) du token
 const getAuthUserId = (req) => {
+  console.log(req.auth.userId);
   return req.auth.userId;
 };
 
+// Retourne le message d'erreur avec un code HTTP 400
 const badRequestError = (res, err) => {
   return res.status(400).json({ err });
 };
 
-// Renvoi toutes les sauces
+// Tri de toutes les sauces par orde de fabricant (a-z) puis de puissance (heat)
 const sortByManufacturerAndHeat = (sauces) => {
   const sortSauces = (a, b) => {
     aLow = a.manufacturer.toLowerCase();
@@ -34,6 +41,7 @@ const sortByManufacturerAndHeat = (sauces) => {
   return sortedSauces;
 };
 
+// Retourne toutes les sauces
 exports.getAllSauces = async (req, res, next) => {
   try {
     const sauces = await Sauce.find();
@@ -44,7 +52,7 @@ exports.getAllSauces = async (req, res, next) => {
   }
 };
 
-// Renvoi une sauce
+// Retourne une sauce selon son id en paramètre de l'url
 exports.getOneSauce = async (req, res, next) => {
   const sauceId = getSauceId(req);
   try {
@@ -55,7 +63,7 @@ exports.getOneSauce = async (req, res, next) => {
   }
 };
 
-// Création sauce
+// Création d'une sauce
 exports.createSauce = async (req, res, next) => {
   try {
     const sauceObject = JSON.parse(req.body.sauce);
@@ -72,18 +80,24 @@ exports.createSauce = async (req, res, next) => {
   }
 };
 
-// Modification sauce
+// Retourne le message "Sauce modifiée avec succès !" avec code HTTP 200
 const modifySuccessResponse = (res) => {
-  res.status(200).json({ message: "Sauce modifiée avec succès !" });
+  return res.status(200).json({ message: "Sauce modifiée avec succès !" });
 };
 
+// Suppression de l'image d'une sauce u dossier "images"
+const deleteSauceImage = (sauce) => {
+  const filename = sauce.imageUrl.split("/images/")[1];
+  fs.unlinkSync(`images/${filename}`);
+};
+
+// Modification d'une sauce avec ou sans modification de l'image (si modif image, l'ancienne est supprimée du dossier "images")
 exports.modifySauce = async (req, res, next) => {
   const sauceId = getSauceId(req);
   if (req.file) {
     try {
       const sauce = await findSauce(sauceId);
-      const filename = sauce.imageUrl.split("/images/")[1];
-      fs.unlinkSync(`images/${filename}`);
+      deleteSauceImage(sauce);
       await Sauce.updateOne(
         {
           _id: sauceId,
@@ -109,7 +123,7 @@ exports.modifySauce = async (req, res, next) => {
   }
 };
 
-// Suppression sauce
+// Suppression d'une sauce et de son image du dossier "images"
 exports.deleteSauce = async (req, res, next) => {
   const sauceId = getSauceId(req);
   const userId = getAuthUserId(req);
@@ -123,8 +137,7 @@ exports.deleteSauce = async (req, res, next) => {
         .status(401)
         .json({ error: new Error("Requête non autorisée !") });
     }
-    const filename = sauce.imageUrl.split("/images/")[1];
-    fs.unlinkSync(`images/${filename}`);
+    deleteSauceImage(sauce);
     await Sauce.deleteOne({ _id: sauceId });
     res.status(200).json({ message: "Sauce supprimée avec succès !" });
   } catch (err) {
@@ -132,7 +145,7 @@ exports.deleteSauce = async (req, res, next) => {
   }
 };
 
-// Like sauce
+// Ajoute un like sur une sauce
 const addLike = async (sauceId, req, res) => {
   try {
     await Sauce.updateOne(
@@ -145,6 +158,7 @@ const addLike = async (sauceId, req, res) => {
   }
 };
 
+// Ajoute un dislike sur une sauce
 const addDislike = async (sauceId, req, res) => {
   try {
     await Sauce.updateOne(
@@ -157,6 +171,7 @@ const addDislike = async (sauceId, req, res) => {
   }
 };
 
+// Retire un like sur une sauce
 const removeLike = async (sauceId, req, res) => {
   try {
     await Sauce.updateOne(
@@ -169,6 +184,7 @@ const removeLike = async (sauceId, req, res) => {
   }
 };
 
+// Retire un dislike sur une sauce
 const removeDislike = async (sauceId, req, res) => {
   try {
     await Sauce.updateOne(
@@ -181,6 +197,7 @@ const removeDislike = async (sauceId, req, res) => {
   }
 };
 
+// Ajoute ou retire un like ou un dislike selon le contenu de la requête
 exports.likeOrDislikeSauce = async (req, res, next) => {
   const sauceId = getSauceId(req);
   try {

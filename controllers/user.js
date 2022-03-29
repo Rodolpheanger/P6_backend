@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+// Créé un utilisateur et l'joute à la BDD avec hashage du mot de passe
 exports.signup = async (req, res, next) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -16,6 +17,7 @@ exports.signup = async (req, res, next) => {
   }
 };
 
+// Vérifie le couple email + password dans la BDD et si ok, créé et un webtoken d'authentification valable 24h
 exports.login = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.body.email });
