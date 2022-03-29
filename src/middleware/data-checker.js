@@ -37,10 +37,9 @@ const sauceJoiSchema = Joi.object({
 exports.checkSauceData = (req, res, next) => {
   if (req.file) {
     const checkedData = sauceJoiSchema.validate(JSON.parse(req.body.sauce));
-    console.log(req.file.filename);
     if (checkedData.error) {
       const filename = req.file.filename;
-      fs.unlinkSync(`images/${filename}`);
+      fs.unlinkSync(`src/images/${filename}`);
       return errorMessage(res);
     } else {
       next();
@@ -49,7 +48,6 @@ exports.checkSauceData = (req, res, next) => {
   if (!req.file) {
     const checkedData = sauceJoiSchema.validate(req.body);
     if (checkedData.error) {
-      console.log(checkedData.error);
       return errorMessage(res);
     } else {
       next();

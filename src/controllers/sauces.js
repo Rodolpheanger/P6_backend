@@ -13,7 +13,6 @@ const findSauce = (sauceId) => {
 
 // Retourne l'id de l'utilisateur contenu dans la partie charge utile (payload) du token
 const getAuthUserId = (req) => {
-  console.log(req.auth.userId);
   return req.auth.userId;
 };
 
@@ -69,7 +68,7 @@ exports.createSauce = async (req, res, next) => {
     const sauceObject = JSON.parse(req.body.sauce);
     const sauce = new Sauce({
       ...sauceObject,
-      imageUrl: `${req.protocol}://${req.get("host")}/images/${
+      imageUrl: `${req.protocol}://${req.get("host")}/src/images/${
         req.file.filename
       }`,
     });
@@ -85,10 +84,10 @@ const modifySuccessResponse = (res) => {
   return res.status(200).json({ message: "Sauce modifiée avec succès !" });
 };
 
-// Suppression de l'image d'une sauce u dossier "images"
+// Suppression de l'image d'une sauce du dossier "images"
 const deleteSauceImage = (sauce) => {
-  const filename = sauce.imageUrl.split("/images/")[1];
-  fs.unlinkSync(`images/${filename}`);
+  const filename = sauce.imageUrl.split("/src/images/")[1];
+  fs.unlinkSync(`src/images/${filename}`);
 };
 
 // Modification d'une sauce avec ou sans modification de l'image (si modif image, l'ancienne est supprimée du dossier "images")
@@ -104,7 +103,7 @@ exports.modifySauce = async (req, res, next) => {
         },
         {
           ...JSON.parse(req.body.sauce),
-          imageUrl: `${req.protocol}://${req.get("host")}/images/${
+          imageUrl: `${req.protocol}://${req.get("host")}/src/images/${
             req.file.filename
           }`,
         }
