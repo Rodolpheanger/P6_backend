@@ -68,7 +68,7 @@ exports.createSauce = async (req, res, next) => {
     const sauceObject = JSON.parse(req.body.sauce);
     const sauce = new Sauce({
       ...sauceObject,
-      imageUrl: `${req.protocol}://${req.get("host")}/src/images/${
+      imageUrl: `${req.protocol}://${req.get("host")}/images/${
         req.file.filename
       }`,
     });
@@ -87,7 +87,7 @@ const sauceOwnerCheck = async (req, sauce) => {
   const reqBodyUserId = reqBody.userId;
   if (sauceUserId !== tokenUserId || sauceUserId !== reqBodyUserId) {
     const filename = req.file.filename;
-    fs.unlinkSync(`src/images/${filename}`);
+    fs.unlinkSync(`images/${filename}`);
     return false;
   } else {
     return true;
@@ -101,8 +101,8 @@ const modifySuccessResponse = (res) => {
 
 // Suppression de l'image d'une sauce du dossier "images"
 const deleteSauceImage = (sauce) => {
-  const filename = sauce.imageUrl.split("/src/images/")[1];
-  fs.unlinkSync(`src/images/${filename}`);
+  const filename = sauce.imageUrl.split("/images/")[1];
+  fs.unlinkSync(`images/${filename}`);
 };
 
 // Modification d'une sauce avec ou sans modification de l'image (si modif image, l'ancienne est supprimée du dossier "images")
@@ -120,7 +120,7 @@ exports.modifySauce = async (req, res, next) => {
           },
           {
             ...JSON.parse(req.body.sauce),
-            imageUrl: `${req.protocol}://${req.get("host")}/src/images/${
+            imageUrl: `${req.protocol}://${req.get("host")}/images/${
               req.file.filename
             }`,
           }

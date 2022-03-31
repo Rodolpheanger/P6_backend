@@ -28,7 +28,7 @@ const fileFilter = (req, file, cb) => {
 // Configuration de multer avec définition du dossier de stockage ("images") et du nom de l'image contenu dans la requête (nom d'origine avec remplacement des éventuels espaces par des underscores + timestamp de la création + extension selon le type mime)
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
-    callback(null, "src/images");
+    callback(null, "images");
   },
   filename: (req, file, callback) => {
     const name = file.originalname.split(" ").join("_");

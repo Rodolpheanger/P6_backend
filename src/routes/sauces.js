@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const requestDataChecker = require("../middleware/data-checker");
+const requestSauceDataChecker = require("../middleware/sauce-data-checker");
+const requestLikeDataChecker = require("../middleware/like-data-checker");
 const sauceCtrl = require("../controllers/sauces");
 const auth = require("../middleware/auth");
 const multer = require("../middleware/multer-config");
@@ -16,7 +17,7 @@ router.post(
   "/",
   auth,
   multer,
-  requestDataChecker.checkSauceData,
+  requestSauceDataChecker.checkSauceData,
   sauceCtrl.createSauce
 );
 
@@ -25,7 +26,7 @@ router.put(
   "/:id",
   auth,
   multer,
-  requestDataChecker.checkSauceData,
+  requestSauceDataChecker.checkSauceData,
   sauceCtrl.modifySauce
 );
 
@@ -36,7 +37,7 @@ router.delete("/:id", auth, sauceCtrl.deleteSauce);
 router.post(
   "/:id/like",
   auth,
-  requestDataChecker.checkLikeData,
+  requestLikeDataChecker.checkLikeData,
   sauceCtrl.likeOrDislikeSauce
 );
 

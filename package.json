@@ -4,7 +4,8 @@
   "description": "backend",
   "main": "server.js",
   "scripts": {
-    "start": "nvm use 16.14.0 && nodemon"
+    "init": "nvm use 16.14.0 && npm start",
+    "start": "nodemon"
   },
   "author": "",
   "license": "ISC",

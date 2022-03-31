@@ -1,4 +1,4 @@
 /node_modules
 .nvmrc
 /config/.env
-/src/images
+/images
