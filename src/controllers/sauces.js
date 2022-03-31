@@ -73,9 +73,24 @@ exports.createSauce = async (req, res, next) => {
       }`,
     });
     await sauce.save();
-    res.status(201).json({ message: "Sauce créée avec succès!" });
+    res.status(201).json({ message: `Sauce créée avec succès: ${sauce._id}` });
   } catch (err) {
     badRequestError(res, err);
+  }
+};
+
+// Si la requête contient une image. Retourne true si l'id utilisateur dans le token et le req.body correspond au créateur de la sauce (userId de la sauce dans la BDD). Si false, la nouvelle image est supprimée du dossier "images".
+const sauceOwnerCheck = async (req, sauce) => {
+  const sauceUserId = sauce.userId;
+  const tokenUserId = getAuthUserId(req);
+  const reqBody = JSON.parse(req.body.sauce);
+  const reqBodyUserId = reqBody.userId;
+  if (sauceUserId !== tokenUserId || sauceUserId !== reqBodyUserId) {
+    const filename = req.file.filename;
+    fs.unlinkSync(`src/images/${filename}`);
+    return false;
+  } else {
+    return true;
   }
 };
 
@@ -96,19 +111,24 @@ exports.modifySauce = async (req, res, next) => {
   if (req.file) {
     try {
       const sauce = await findSauce(sauceId);
-      deleteSauceImage(sauce);
-      await Sauce.updateOne(
-        {
-          _id: sauceId,
-        },
-        {
-          ...JSON.parse(req.body.sauce),
-          imageUrl: `${req.protocol}://${req.get("host")}/src/images/${
-            req.file.filename
-          }`,
-        }
-      );
-      modifySuccessResponse(res);
+      const userIsOwner = await sauceOwnerCheck(req, sauce);
+      if (userIsOwner === true) {
+        deleteSauceImage(sauce);
+        await Sauce.updateOne(
+          {
+            _id: sauceId,
+          },
+          {
+            ...JSON.parse(req.body.sauce),
+            imageUrl: `${req.protocol}://${req.get("host")}/src/images/${
+              req.file.filename
+            }`,
+          }
+        );
+        modifySuccessResponse(res);
+      } else {
+        return res.status(401).json({ message: "Requête non autorisée !" });
+      }
     } catch (err) {
       res.status(404).json({ err });
     }
@@ -129,12 +149,10 @@ exports.deleteSauce = async (req, res, next) => {
   try {
     const sauce = await findSauce(sauceId);
     if (!sauce) {
-      return res.status(404).json({ error: new Error("Sauce non trouvée !") });
+      return res.status(404).json({ message: "Sauce non trouvée !" });
     }
     if (userId !== sauce.userId) {
-      return res
-        .status(401)
-        .json({ error: new Error("Requête non autorisée !") });
+      return res.status(401).json({ message: "Requête non autorisée !" });
     }
     deleteSauceImage(sauce);
     await Sauce.deleteOne({ _id: sauceId });
