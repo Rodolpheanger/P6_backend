@@ -1,6 +1,11 @@
 const Joi = require("joi");
 const fs = require("fs");
 
+// Retourne le massage d'erreur "Format des données non valide !" et un code HTTP 400
+const errorMessage = (res) => {
+  return res.status(400).json({ message: "Format des données non valide !" });
+};
+
 // Schéma Joi "sauce" pour vérification des données reçue pour une requête sur une sauce (PUT et DELETE)
 const sauceJoiSchema = Joi.object({
   name: Joi.string().required(),
