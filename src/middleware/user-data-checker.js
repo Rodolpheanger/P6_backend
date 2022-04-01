@@ -5,10 +5,12 @@ const errorMessage = (res) => {
   return res.status(400).json({ message: "Format des données non valide !" });
 };
 
-// Schéma Joi "user" pour vérification des données reçue pour une requête sur un utilisateur (POST: sign up et login)
+// Schéma Joi "user" pour vérification des données reçue pour une requête sur un utilisateur (POST: sign up et login). Application d'une regex sur le password pour empêcher certains des caractères spécifiques du NoSQL
 const userJoiSchema = Joi.object({
   email: Joi.string().email().required(),
-  password: Joi.string().required(),
+  password: Joi.string()
+    .pattern(/^[^'"\/$\[\]>=]+$/i)
+    .required(),
 }).options({ abortEarly: false });
 
 // Vérifie que les données reçues dans la requête correspondent au schéma Joi "user"
