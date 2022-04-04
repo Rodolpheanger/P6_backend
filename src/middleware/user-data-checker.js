@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-// Retourne le massage d'erreur "Format des données non valide !" et un code HTTP 400
+// Retourne le message d'erreur "Format des données non valide !" et un code HTTP 400
 const errorMessage = (res) => {
   return res.status(400).json({ message: "Format des données non valide !" });
 };
