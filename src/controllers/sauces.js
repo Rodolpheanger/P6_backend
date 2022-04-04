@@ -127,7 +127,7 @@ exports.modifySauce = async (req, res, next) => {
         );
         modifySuccessResponse(res);
       } else {
-        return res.status(401).json({ message: "Requête non autorisée !" });
+        return res.status(403).json({ message: "Requête non autorisée !" });
       }
     } catch (err) {
       res.status(404).json({ err });
@@ -152,7 +152,7 @@ exports.deleteSauce = async (req, res, next) => {
       return res.status(404).json({ message: "Sauce non trouvée !" });
     }
     if (userId !== sauce.userId) {
-      return res.status(401).json({ message: "Requête non autorisée !" });
+      return res.status(403).json({ message: "Requête non autorisée !" });
     }
     deleteSauceImage(sauce);
     await Sauce.deleteOne({ _id: sauceId });

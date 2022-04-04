@@ -8,7 +8,7 @@ module.exports = (req, res, next) => {
     const userId = decodedToken.userId;
     req.auth = { userId };
     if (req.body.userId && req.body.userId !== userId) {
-      throw "Requête non autorisée !";
+      throw "403 : Requête non autorisée !";
     } else {
       next();
     }
